@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useAdmin } from '../context/AuthContext';
 import { clsx } from 'clsx';
 import ActivationBadge from './ActivationBadge';
 import AddCustomerModal from './AddCustomerModal';
@@ -44,7 +44,7 @@ function getTenure(customer) {
 export default function CustomerTable({ customers }) {
   const navigate = useNavigate();
   const { deleteCustomer } = useData();
-  const { isSignedIn } = useUser();
+  const { isSignedIn } = useAdmin();
   const [sortKey, setSortKey] = useState('activationScore');
   const [sortDir, setSortDir] = useState('desc');
   const [page,    setPage]    = useState(1);

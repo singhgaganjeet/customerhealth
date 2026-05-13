@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAdmin } from './AuthContext';
 import { parseAndValidateCSV } from '../lib/csvParser';
 import { enrichCustomer } from '../lib/scoring';
 
@@ -47,7 +47,7 @@ async function api(path, options = {}, token = null) {
 }
 
 export function DataProvider({ children }) {
-  const { getToken, isSignedIn } = useAuth();
+  const { getToken, isSignedIn } = useAdmin();
   const [customers,   setCustomers]   = useState([]);
   const [history,     setHistory]     = useState([]);
   const [reportDate,  setReportDate]  = useState(null);

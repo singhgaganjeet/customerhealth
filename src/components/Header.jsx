@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { SignInButton, UserButton, useUser } from '@clerk/clerk-react';
+import { SignInButton, UserButton } from '@clerk/clerk-react';
+import { useAdmin, CLERK_CONFIGURED } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import HistoryModal from './HistoryModal';
 
 export default function Header({ onImportClick, onPDFClick, onAddClick }) {
   const { reportDate, history } = useData();
-  const { isSignedIn } = useUser();
+  const { isSignedIn } = useAdmin();
   const [showHistory, setShowHistory] = useState(false);
 
   return (
@@ -79,17 +80,19 @@ export default function Header({ onImportClick, onPDFClick, onAddClick }) {
         </button>
       )}
 
-      {isSignedIn ? (
-        <UserButton afterSignOutUrl={window.location.href} />
-      ) : (
-        <SignInButton mode="modal">
-          <button className="flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-gray-300 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Admin Login
-          </button>
-        </SignInButton>
+      {CLERK_CONFIGURED && (
+        isSignedIn ? (
+          <UserButton afterSignOutUrl={window.location.href} />
+        ) : (
+          <SignInButton mode="modal">
+            <button className="flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-gray-300 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Admin Login
+            </button>
+          </SignInButton>
+        )
       )}
     </header>
 

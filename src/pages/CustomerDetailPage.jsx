@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useAdmin } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import Header from '../components/Header';
 import ActivationGauge from '../components/ActivationGauge';
@@ -24,7 +24,7 @@ function InfoChip({ label, value, highlight }) {
 export default function CustomerDetailPage() {
   const { siteId } = useParams();
   const { customers, deleteCustomer } = useData();
-  const { isSignedIn } = useUser();
+  const { isSignedIn } = useAdmin();
   const navigate = useNavigate();
   const customer = customers.find(c => String(c.site_id) === String(siteId));
   const [showEdit, setShowEdit] = useState(false);

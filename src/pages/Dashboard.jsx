@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useAdmin } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import Header from '../components/Header';
 import KPIStrip from '../components/KPIStrip';
@@ -13,7 +13,7 @@ import { generatePDFReport } from '../lib/pdf';
 
 export default function Dashboard() {
   const { customers, reportDate, clearAllCustomers } = useData();
-  const { isSignedIn } = useUser();
+  const { isSignedIn } = useAdmin();
   const [showImport, setShowImport] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);

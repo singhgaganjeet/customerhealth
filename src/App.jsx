@@ -1,11 +1,9 @@
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { ClerkProvider } from '@clerk/clerk-react';
+import { AuthProvider } from './context/AuthContext';
 import { DataProvider, useData } from './context/DataContext';
 import Dashboard from './pages/Dashboard';
 import CustomerDetailPage from './pages/CustomerDetailPage';
 import PillarExplorerPage from './pages/PillarExplorerPage';
-
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function AppRoutes() {
   const { loading, dbError } = useData();
@@ -46,24 +44,13 @@ function AppRoutes() {
 }
 
 export default function App() {
-  if (!PUBLISHABLE_KEY) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-8 max-w-md text-center">
-          <p className="text-sm text-slate-700 font-semibold mb-2">Missing configuration</p>
-          <p className="text-xs text-slate-500 font-mono">VITE_CLERK_PUBLISHABLE_KEY is not set</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <AuthProvider>
       <DataProvider>
         <HashRouter>
           <AppRoutes />
         </HashRouter>
       </DataProvider>
-    </ClerkProvider>
+    </AuthProvider>
   );
 }
