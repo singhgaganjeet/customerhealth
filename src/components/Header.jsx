@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { SignInButton, UserButton } from '@clerk/clerk-react';
-import { useAdmin, CLERK_CONFIGURED } from '../context/AuthContext';
+import { UserButton } from '@clerk/clerk-react';
+import { CLERK_CONFIGURED } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import HistoryModal from './HistoryModal';
 
 export default function Header({ onImportClick, onPDFClick, onAddClick }) {
   const { reportDate, history } = useData();
-  const { isSignedIn } = useAdmin();
   const [showHistory, setShowHistory] = useState(false);
 
   return (
@@ -26,25 +25,23 @@ export default function Header({ onImportClick, onPDFClick, onAddClick }) {
         </span>
       )}
 
-      {isSignedIn && (
-        <button
-          onClick={() => setShowHistory(true)}
-          title="Change History"
-          className="relative flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-gray-300 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          History
-          {history.length > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-              {history.length > 99 ? '99' : history.length}
-            </span>
-          )}
-        </button>
-      )}
+      <button
+        onClick={() => setShowHistory(true)}
+        title="Change History"
+        className="relative flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-gray-300 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        History
+        {history.length > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+            {history.length > 99 ? '99' : history.length}
+          </span>
+        )}
+      </button>
 
-      {isSignedIn && onAddClick && (
+      {onAddClick && (
         <button
           onClick={onAddClick}
           className="flex items-center gap-1.5 text-xs text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-2 rounded-lg transition-colors font-medium"
@@ -56,7 +53,7 @@ export default function Header({ onImportClick, onPDFClick, onAddClick }) {
         </button>
       )}
 
-      {isSignedIn && onImportClick && (
+      {onImportClick && (
         <button
           onClick={onImportClick}
           className="flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-gray-300 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium"
@@ -68,7 +65,7 @@ export default function Header({ onImportClick, onPDFClick, onAddClick }) {
         </button>
       )}
 
-      {isSignedIn && onPDFClick && (
+      {onPDFClick && (
         <button
           onClick={onPDFClick}
           className="flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-gray-300 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium"
@@ -80,20 +77,7 @@ export default function Header({ onImportClick, onPDFClick, onAddClick }) {
         </button>
       )}
 
-      {CLERK_CONFIGURED && (
-        isSignedIn ? (
-          <UserButton afterSignOutUrl={window.location.href} />
-        ) : (
-          <SignInButton mode="modal">
-            <button className="flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-gray-300 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Admin Login
-            </button>
-          </SignInButton>
-        )
-      )}
+      {CLERK_CONFIGURED && <UserButton afterSignOutUrl={window.location.href} />}
     </header>
 
     {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}

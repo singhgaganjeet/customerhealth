@@ -6,6 +6,7 @@ const ADMIN_EMAIL     = import.meta.env.VITE_ADMIN_EMAIL;
 
 const AdminCtx = createContext({
   isSignedIn: false,
+  isLoaded: false,
   getToken: () => Promise.resolve(null),
 });
 
@@ -32,7 +33,7 @@ function ClerkBridge({ children }) {
 
   return (
     <>
-      <AdminCtx.Provider value={{ isSignedIn: isAdmin ?? false, getToken }}>
+      <AdminCtx.Provider value={{ isSignedIn: isAdmin ?? false, isLoaded: isLoaded ?? false, getToken }}>
         {children}
       </AdminCtx.Provider>
 
@@ -64,7 +65,7 @@ function ClerkBridge({ children }) {
 export function AuthProvider({ children }) {
   if (!PUBLISHABLE_KEY) {
     return (
-      <AdminCtx.Provider value={{ isSignedIn: false, getToken: () => Promise.resolve(null) }}>
+      <AdminCtx.Provider value={{ isSignedIn: false, isLoaded: true, getToken: () => Promise.resolve(null) }}>
         {children}
       </AdminCtx.Provider>
     );
