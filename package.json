@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/backend": "^3.4.7",
+    "@clerk/clerk-react": "^5.61.6",
     "@libsql/client": "^0.17.3",
     "clsx": "^2.1.1",
     "jspdf": "^2.5.1",

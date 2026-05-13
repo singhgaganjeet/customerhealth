@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { useData } from '../context/DataContext';
 import Header from '../components/Header';
 import KPIStrip from '../components/KPIStrip';
@@ -12,6 +13,7 @@ import { generatePDFReport } from '../lib/pdf';
 
 export default function Dashboard() {
   const { customers, reportDate, clearAllCustomers } = useData();
+  const { isSignedIn } = useUser();
   const [showImport, setShowImport] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -33,9 +35,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header
-        onAddClick={() => setShowAdd(true)}
-        onImportClick={() => setShowImport(true)}
-        onPDFClick={() => generatePDFReport(customers, reportDate)}
+        onAddClick={isSignedIn ? () => setShowAdd(true) : undefined}
+        onImportClick={isSignedIn ? () => setShowImport(true) : undefined}
+        onPDFClick={isSignedIn ? () => generatePDFReport(customers, reportDate) : undefined}
       />
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-5">
@@ -51,7 +53,7 @@ export default function Dashboard() {
               <h2 className="text-sm font-semibold text-slate-700">Customer Directory</h2>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-slate-400">{filtered.length} of {customers.length} shown</span>
-                {customers.length > 0 && (
+                {isSignedIn && customers.length > 0 && (
                   <button
                     onClick={() => setShowClearConfirm(true)}
                     className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
@@ -75,9 +77,9 @@ export default function Dashboard() {
         <CustomerTable customers={filtered} />
       </main>
 
-      {showImport && <ImportModal onClose={() => setShowImport(false)} />}
-      {showAdd && <AddCustomerModal onClose={() => setShowAdd(false)} />}
-      {showClearConfirm && (
+      {isSignedIn && showImport && <ImportModal onClose={() => setShowImport(false)} />}
+      {isSignedIn && showAdd && <AddCustomerModal onClose={() => setShowAdd(false)} />}
+      {isSignedIn && showClearConfirm && (
         <ConfirmDialog
           title="Clear All Data"
           message={`This will permanently remove all ${customers.length} customers. This cannot be undone.`}

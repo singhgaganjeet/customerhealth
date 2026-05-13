@@ -1,4 +1,5 @@
 import { getDB, ensureTables } from './_db.js';
+import { requireAuth } from './_auth.js';
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
@@ -12,7 +13,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      // Add a single customer
+      if (!await requireAuth(req, res)) return;
       const c = req.body;
       await db.execute({
         sql: 'INSERT OR REPLACE INTO customers (site_id, data, sort_ts) VALUES (?, ?, datetime("now"))',
@@ -22,8 +23,8 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-      // Import: replace entire customer list atomically
-      const customers = req.body; // array
+      if (!await requireAuth(req, res)) return;
+      const customers = req.body;
       await db.batch(
         [
           { sql: 'DELETE FROM customers', args: [] },
@@ -38,6 +39,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
+      if (!await requireAuth(req, res)) return;
       await db.execute('DELETE FROM customers');
       return res.status(200).json({ ok: true });
     }

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from '@clerk/clerk-react';
 import { parseAndValidateCSV } from '../lib/csvParser';
 import { enrichCustomer } from '../lib/scoring';
 
@@ -30,9 +31,11 @@ function diffCustomer(oldC, newC) {
     }));
 }
 
-async function api(path, options = {}) {
+async function api(path, options = {}, token = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(path, {
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     ...options,
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   });
@@ -44,6 +47,7 @@ async function api(path, options = {}) {
 }
 
 export function DataProvider({ children }) {
+  const { getToken, isSignedIn } = useAuth();
   const [customers,   setCustomers]   = useState([]);
   const [history,     setHistory]     = useState([]);
   const [reportDate,  setReportDate]  = useState(null);
@@ -52,7 +56,6 @@ export function DataProvider({ children }) {
   const [importing,   setImporting]   = useState(false);
   const [importError, setImportError] = useState(null);
 
-  // Load data from Turso on mount
   useEffect(() => {
     Promise.all([
       api('/api/customers'),
@@ -60,7 +63,6 @@ export function DataProvider({ children }) {
     ]).then(([rawCustomers, rawHistory]) => {
       setCustomers(rawCustomers.map(enrichCustomer));
       setHistory(rawHistory);
-      // Derive reportDate from last import event
       const lastImport = rawHistory.find(e => e.action === 'imported');
       if (lastImport) setReportDate(rawCustomers[0]?.as_of_date || null);
     }).catch(err => {
@@ -68,44 +70,58 @@ export function DataProvider({ children }) {
     }).finally(() => setLoading(false));
   }, []);
 
-  function pushHistory(entry) {
+  async function getAuthToken() {
+    return isSignedIn ? getToken() : null;
+  }
+
+  function pushHistory(entry, token) {
     const newEntry = { id: String(Date.now()), timestamp: new Date().toISOString(), ...entry };
     setHistory(prev => [newEntry, ...prev]);
-    api('/api/history', { method: 'POST', body: newEntry }).catch(console.error);
+    api('/api/history', { method: 'POST', body: newEntry }, token).catch(console.error);
   }
 
   function addCustomer(enriched) {
     setCustomers(prev => [...prev, enriched]);
-    api('/api/customers', { method: 'POST', body: enriched }).catch(console.error);
-    pushHistory({ action: 'added', customerName: enriched.customer, siteId: enriched.site_id });
+    getAuthToken().then(token => {
+      api('/api/customers', { method: 'POST', body: enriched }, token).catch(console.error);
+      pushHistory({ action: 'added', customerName: enriched.customer, siteId: enriched.site_id }, token);
+    });
   }
 
   function updateCustomer(enriched) {
     const old = customers.find(c => String(c.site_id) === String(enriched.site_id));
     const changes = diffCustomer(old, enriched);
     setCustomers(prev => prev.map(c => String(c.site_id) === String(enriched.site_id) ? enriched : c));
-    api(`/api/customers/${enriched.site_id}`, { method: 'PUT', body: enriched }).catch(console.error);
-    pushHistory({ action: 'edited', customerName: enriched.customer, siteId: enriched.site_id, changes });
+    getAuthToken().then(token => {
+      api(`/api/customers/${enriched.site_id}`, { method: 'PUT', body: enriched }, token).catch(console.error);
+      pushHistory({ action: 'edited', customerName: enriched.customer, siteId: enriched.site_id, changes }, token);
+    });
   }
 
   function deleteCustomer(siteId) {
     const c = customers.find(c => String(c.site_id) === String(siteId));
     setCustomers(prev => prev.filter(c => String(c.site_id) !== String(siteId)));
-    api(`/api/customers/${siteId}`, { method: 'DELETE' }).catch(console.error);
-    pushHistory({ action: 'deleted', customerName: c?.customer, siteId });
+    getAuthToken().then(token => {
+      api(`/api/customers/${siteId}`, { method: 'DELETE' }, token).catch(console.error);
+      pushHistory({ action: 'deleted', customerName: c?.customer, siteId }, token);
+    });
   }
 
   function clearAllCustomers() {
     const count = customers.length;
     setCustomers([]);
     setReportDate(null);
-    api('/api/customers', { method: 'DELETE' }).catch(console.error);
-    pushHistory({ action: 'cleared', count });
+    getAuthToken().then(token => {
+      api('/api/customers', { method: 'DELETE' }, token).catch(console.error);
+      pushHistory({ action: 'cleared', count }, token);
+    });
   }
 
   function clearHistory() {
     setHistory([]);
-    api('/api/history', { method: 'DELETE' }).catch(console.error);
+    getAuthToken().then(token => {
+      api('/api/history', { method: 'DELETE' }, token).catch(console.error);
+    });
   }
 
   async function importCSV(file, asOfDate) {
@@ -113,10 +129,11 @@ export function DataProvider({ children }) {
     setImportError(null);
     try {
       const parsed = await parseAndValidateCSV(file, asOfDate);
-      await api('/api/customers', { method: 'PUT', body: parsed });
+      const token = await getAuthToken();
+      await api('/api/customers', { method: 'PUT', body: parsed }, token);
       setCustomers(parsed.map(enrichCustomer));
       setReportDate(asOfDate || null);
-      pushHistory({ action: 'imported', count: parsed.length, fileName: file.name });
+      pushHistory({ action: 'imported', count: parsed.length, fileName: file.name }, token);
       return true;
     } catch (err) {
       setImportError(err.message);
