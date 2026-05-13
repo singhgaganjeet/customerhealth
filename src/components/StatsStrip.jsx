@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { clsx } from 'clsx';
+import CustomerListModal from './CustomerListModal';
 
 const PA_TIERS = [
   { label: 'Very Active',  key: 'Very Active',  bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-500'  },
@@ -20,73 +22,94 @@ const MODULES = [
   { label: 'Demo Done',       fn: c => !!(c.last_demo_date && String(c.last_demo_date).trim()) },
 ];
 
-function StatCard({ label, count, total, bg, text, border, dot }) {
+function StatCard({ label, count, total, bg, text, border, dot, onClick }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
-    <div className={clsx('rounded-xl border px-3 py-2.5 flex flex-col gap-1', bg, border)}>
+    <button
+      onClick={onClick}
+      className={clsx('rounded-xl border px-3 py-2.5 flex flex-col gap-1 text-left transition-opacity hover:opacity-80 active:opacity-70 cursor-pointer w-full', bg, border)}
+    >
       <div className={clsx('text-2xl font-bold tabular-nums leading-none', text)}>{count}</div>
       <div className="flex items-center gap-1.5">
         {dot && <span className={clsx('w-1.5 h-1.5 rounded-full shrink-0', dot)} />}
         <span className={clsx('text-[11px] leading-snug font-medium', text)}>{label}</span>
       </div>
       <div className={clsx('text-[10px]', text, 'opacity-60')}>{pct}% of total</div>
-    </div>
+    </button>
   );
 }
 
-function ModuleCard({ label, count, total }) {
+function ModuleCard({ label, count, total, onClick }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
-    <div className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 flex flex-col gap-1">
+    <button
+      onClick={onClick}
+      className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 flex flex-col gap-1 text-left transition-opacity hover:opacity-80 active:opacity-70 cursor-pointer w-full"
+    >
       <div className="text-2xl font-bold tabular-nums leading-none text-indigo-700">{count}</div>
       <div className="text-[11px] font-medium text-indigo-700 leading-snug">{label}</div>
       <div className="text-[10px] text-indigo-400">{pct}% of total</div>
-    </div>
+    </button>
   );
 }
 
 export default function StatsStrip({ customers }) {
+  const [modal, setModal] = useState(null);
   const total = customers.length;
 
-  const paCounts = Object.fromEntries(
-    PA_TIERS.map(t => [t.key, customers.filter(c => c.pa_status === t.key).length])
-  );
-
   return (
-    <div className="space-y-3">
-      {/* PA Status */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Product Adoption Status</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-          {PA_TIERS.map(t => (
-            <StatCard
-              key={t.key}
-              label={t.label}
-              count={paCounts[t.key]}
-              total={total}
-              bg={t.bg}
-              text={t.text}
-              border={t.border}
-              dot={t.dot}
-            />
-          ))}
+    <>
+      <div className="space-y-3">
+        {/* PA Status */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Product Adoption Status</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+            {PA_TIERS.map(t => {
+              const subset = customers.filter(c => c.pa_status === t.key);
+              return (
+                <StatCard
+                  key={t.key}
+                  label={t.label}
+                  count={subset.length}
+                  total={total}
+                  bg={t.bg}
+                  text={t.text}
+                  border={t.border}
+                  dot={t.dot}
+                  onClick={() => setModal({ title: `PA Status — ${t.label}`, customers: subset })}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Module adoption */}
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Module Adoption</p>
+          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
+            {MODULES.map(m => {
+              const subset = customers.filter(m.fn);
+              return (
+                <ModuleCard
+                  key={m.label}
+                  label={m.label}
+                  count={subset.length}
+                  total={total}
+                  onClick={() => setModal({ title: m.label, customers: subset })}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Module adoption */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Module Adoption</p>
-        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
-          {MODULES.map(m => (
-            <ModuleCard
-              key={m.label}
-              label={m.label}
-              count={customers.filter(m.fn).length}
-              total={total}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
+      {modal && (
+        <CustomerListModal
+          title={modal.title}
+          customers={modal.customers}
+          onClose={() => setModal(null)}
+        />
+      )}
+    </>
   );
 }
