@@ -4,7 +4,6 @@ import { enrichCustomer } from '../lib/scoring';
 
 const DataContext = createContext(null);
 
-// Fields tracked for change history diffs
 const TRACKED_FIELDS = {
   code: 'Code', customer: 'Institution Name', city: 'City', state: 'State',
   signup_date: 'Signup Date',
@@ -31,32 +30,53 @@ function diffCustomer(oldC, newC) {
     }));
 }
 
-function load(key, fallback) {
-  try {
-    const s = localStorage.getItem(key);
-    return s ? JSON.parse(s) : fallback;
-  } catch { return fallback; }
+async function api(path, options = {}) {
+  const res = await fetch(path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.error || `${res.status} ${res.statusText}`);
+  }
+  return res.json();
 }
 
 export function DataProvider({ children }) {
-  const [customers, setCustomers] = useState(() =>
-    load('hoopstr_customers', []).map(enrichCustomer)
-  );
-  const [history, setHistory]     = useState(() => load('hoopstr_history', []));
-  const [reportDate, setReportDate] = useState(() => load('hoopstr_report_date', null));
-  const [importing, setImporting] = useState(false);
+  const [customers,   setCustomers]   = useState([]);
+  const [history,     setHistory]     = useState([]);
+  const [reportDate,  setReportDate]  = useState(null);
+  const [loading,     setLoading]     = useState(true);
+  const [dbError,     setDbError]     = useState(null);
+  const [importing,   setImporting]   = useState(false);
   const [importError, setImportError] = useState(null);
 
-  useEffect(() => { localStorage.setItem('hoopstr_customers',    JSON.stringify(customers));   }, [customers]);
-  useEffect(() => { localStorage.setItem('hoopstr_history',      JSON.stringify(history));     }, [history]);
-  useEffect(() => { localStorage.setItem('hoopstr_report_date',  JSON.stringify(reportDate));  }, [reportDate]);
+  // Load data from Turso on mount
+  useEffect(() => {
+    Promise.all([
+      api('/api/customers'),
+      api('/api/history'),
+    ]).then(([rawCustomers, rawHistory]) => {
+      setCustomers(rawCustomers.map(enrichCustomer));
+      setHistory(rawHistory);
+      // Derive reportDate from last import event
+      const lastImport = rawHistory.find(e => e.action === 'imported');
+      if (lastImport) setReportDate(rawCustomers[0]?.as_of_date || null);
+    }).catch(err => {
+      setDbError(err.message);
+    }).finally(() => setLoading(false));
+  }, []);
 
   function pushHistory(entry) {
-    setHistory(prev => [{ id: String(Date.now()), timestamp: new Date().toISOString(), ...entry }, ...prev]);
+    const newEntry = { id: String(Date.now()), timestamp: new Date().toISOString(), ...entry };
+    setHistory(prev => [newEntry, ...prev]);
+    api('/api/history', { method: 'POST', body: newEntry }).catch(console.error);
   }
 
   function addCustomer(enriched) {
     setCustomers(prev => [...prev, enriched]);
+    api('/api/customers', { method: 'POST', body: enriched }).catch(console.error);
     pushHistory({ action: 'added', customerName: enriched.customer, siteId: enriched.site_id });
   }
 
@@ -64,12 +84,14 @@ export function DataProvider({ children }) {
     const old = customers.find(c => String(c.site_id) === String(enriched.site_id));
     const changes = diffCustomer(old, enriched);
     setCustomers(prev => prev.map(c => String(c.site_id) === String(enriched.site_id) ? enriched : c));
+    api(`/api/customers/${enriched.site_id}`, { method: 'PUT', body: enriched }).catch(console.error);
     pushHistory({ action: 'edited', customerName: enriched.customer, siteId: enriched.site_id, changes });
   }
 
   function deleteCustomer(siteId) {
     const c = customers.find(c => String(c.site_id) === String(siteId));
     setCustomers(prev => prev.filter(c => String(c.site_id) !== String(siteId)));
+    api(`/api/customers/${siteId}`, { method: 'DELETE' }).catch(console.error);
     pushHistory({ action: 'deleted', customerName: c?.customer, siteId });
   }
 
@@ -77,11 +99,13 @@ export function DataProvider({ children }) {
     const count = customers.length;
     setCustomers([]);
     setReportDate(null);
+    api('/api/customers', { method: 'DELETE' }).catch(console.error);
     pushHistory({ action: 'cleared', count });
   }
 
   function clearHistory() {
     setHistory([]);
+    api('/api/history', { method: 'DELETE' }).catch(console.error);
   }
 
   async function importCSV(file, asOfDate) {
@@ -89,8 +113,9 @@ export function DataProvider({ children }) {
     setImportError(null);
     try {
       const parsed = await parseAndValidateCSV(file, asOfDate);
-      setCustomers(parsed);
-      setReportDate(asOfDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }));
+      await api('/api/customers', { method: 'PUT', body: parsed });
+      setCustomers(parsed.map(enrichCustomer));
+      setReportDate(asOfDate || null);
       pushHistory({ action: 'imported', count: parsed.length, fileName: file.name });
       return true;
     } catch (err) {
@@ -103,7 +128,7 @@ export function DataProvider({ children }) {
 
   return (
     <DataContext.Provider value={{
-      customers, reportDate, history,
+      customers, reportDate, history, loading, dbError,
       importing, importError,
       importCSV, setImportError,
       addCustomer, updateCustomer, deleteCustomer, clearAllCustomers, clearHistory,
