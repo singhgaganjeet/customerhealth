@@ -84,6 +84,7 @@ export default function CustomerDetailPage() {
                 <InfoChip label="City" value={`${customer.city}, ${customer.state}`} />
                 <InfoChip label="PA Status" value={customer.pa_status || '—'} />
                 <InfoChip label="Signup" value={customer.signup_date || '—'} />
+                <InfoChip label="Data As Of" value={customer.as_of_date || '—'} />
               </div>
             </div>
             <ActivationBadge status={customer.activationStatus} size="lg" />

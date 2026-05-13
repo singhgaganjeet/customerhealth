@@ -18,7 +18,7 @@ export default function Header({ onImportClick, onPDFClick, onAddClick }) {
 
       {reportDate && (
         <span className="text-xs text-slate-400 hidden md:block">
-          Report: <span className="text-slate-600 font-medium">{reportDate}</span>
+          Data As Of: <span className="text-slate-600 font-medium">{reportDate}</span>
         </span>
       )}
 

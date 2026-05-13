@@ -5,20 +5,20 @@ function parseDate(str) {
   return isNaN(d.getTime()) ? null : d;
 }
 
-// Equivalent of Excel's =DAYS(TODAY(), cell)
-export function daysSince(dateStr) {
+// Equivalent of Excel's =DAYS(asOf, cell). Falls back to today if asOfDate not provided.
+export function daysSince(dateStr, asOfDate = null) {
   const date = parseDate(dateStr);
   if (!date) return Infinity;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const ref = (asOfDate ? parseDate(String(asOfDate)) : null) || new Date();
+  ref.setHours(0, 0, 0, 0);
   date.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.floor((today - date) / 86400000));
+  return Math.max(0, Math.floor((ref - date) / 86400000));
 }
 
-// Customer tenure in years from signup_date
+// Customer tenure in years from signup_date, relative to as_of_date
 function getAgeYears(row) {
   if (row.signup_date) {
-    const days = daysSince(row.signup_date);
+    const days = daysSince(row.signup_date, row.as_of_date || null);
     return isFinite(days) ? Math.max(0.1, days / 365) : 1;
   }
   return parseFloat(row.age) || 1;
@@ -48,10 +48,11 @@ export function computePAScore(row) {
   const efSigs   = parseInt(row.sigs     || 0) > 0 ? 5 : 0;
 
   // ── Recency (max 20) ───────────────────────────────────────────────────────
-  const mailerD = daysSince(row.last_mailer_date);
-  const eventD  = daysSince(row.last_event_date);
-  const newsD   = daysSince(row.last_news_date);
-  const loginD  = daysSince(row.last_login_date);
+  const asOf    = row.as_of_date || null;
+  const mailerD = daysSince(row.last_mailer_date, asOf);
+  const eventD  = daysSince(row.last_event_date,  asOf);
+  const newsD   = daysSince(row.last_news_date,   asOf);
+  const loginD  = daysSince(row.last_login_date,  asOf);
 
   const recMailer = mailerD <= 31 ? 5 : mailerD < 45 ? 4 : mailerD < 60  ? 3 : mailerD < 90  ? 2 : mailerD < 120 ? 1 : 0;
   const recEvent  = eventD  <= 90 ? 5 : eventD  < 120 ? 4 : eventD  < 150 ? 3 : eventD  < 180 ? 2 : eventD  < 210 ? 1 : 0;
@@ -81,13 +82,14 @@ export function getPABreakdown(row) {
   const idealNews   = age * 18;
   const evPct = idealEvents > 0 ? (parseInt(row.events || 0) / idealEvents) * 100 : 0;
   const nwPct = idealNews   > 0 ? (parseInt(row.news   || 0) / idealNews)   * 100 : 0;
-  const mailerD = daysSince(row.last_mailer_date);
-  const eventD  = daysSince(row.last_event_date);
-  const newsD   = daysSince(row.last_news_date);
-  const loginD  = daysSince(row.last_login_date);
+  const asOf2   = row.as_of_date || null;
+  const mailerD = daysSince(row.last_mailer_date, asOf2);
+  const eventD  = daysSince(row.last_event_date,  asOf2);
+  const newsD   = daysSince(row.last_news_date,   asOf2);
+  const loginD  = daysSince(row.last_login_date,  asOf2);
 
   // Tenure display
-  const totalDays  = row.signup_date ? daysSince(row.signup_date) : null;
+  const totalDays  = row.signup_date ? daysSince(row.signup_date, asOf2) : null;
   const ageDisplay = totalDays != null
     ? `${Math.floor(totalDays / 365)} yr${Math.floor(totalDays / 365) !== 1 ? 's' : ''} ${Math.round((totalDays % 365) / 30)} mo`
     : null;

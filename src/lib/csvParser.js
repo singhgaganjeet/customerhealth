@@ -11,7 +11,7 @@ const CONDITIONAL_RULES = [
   { if: r => r.campus_visited === 'Yes', thenNotEmpty: 'campus_visit_date', message: 'campus_visit_date required when campus_visited = Yes' },
 ];
 
-export function parseAndValidateCSV(file) {
+export function parseAndValidateCSV(file, asOfDate) {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
       header: true,
@@ -52,7 +52,7 @@ export function parseAndValidateCSV(file) {
           return;
         }
 
-        resolve(rows.map(enrichCustomer));
+        resolve(rows.map(row => enrichCustomer({ ...row, as_of_date: row.as_of_date || asOfDate || '' })));
       },
       error: (err) => reject(new Error(err.message)),
     });

@@ -84,14 +84,13 @@ export function DataProvider({ children }) {
     setHistory([]);
   }
 
-  async function importCSV(file) {
+  async function importCSV(file, asOfDate) {
     setImporting(true);
     setImportError(null);
     try {
-      const parsed = await parseAndValidateCSV(file);
+      const parsed = await parseAndValidateCSV(file, asOfDate);
       setCustomers(parsed);
-      const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-      setReportDate(date);
+      setReportDate(asOfDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }));
       pushHistory({ action: 'imported', count: parsed.length, fileName: file.name });
       return true;
     } catch (err) {

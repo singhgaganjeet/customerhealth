@@ -33,7 +33,7 @@ function ScoreBar({ score }) {
 
 function getTenure(customer) {
   if (!customer.signup_date) return null;
-  const days = daysSince(customer.signup_date);
+  const days = daysSince(customer.signup_date, customer.as_of_date || null);
   if (!isFinite(days)) return null;
   const yrs = Math.floor(days / 365);
   const mo  = Math.round((days % 365) / 30);
@@ -58,7 +58,7 @@ export default function CustomerTable({ customers }) {
   const sorted = [...customers].sort((a, b) => {
     let av, bv;
     if (sortKey === 'activationStatus') { av = a.activationStatus?.label; bv = b.activationStatus?.label; }
-    else if (sortKey === '_tenure') { av = daysSince(a.signup_date) || 0; bv = daysSince(b.signup_date) || 0; }
+    else if (sortKey === '_tenure') { av = daysSince(a.signup_date, a.as_of_date || null) || 0; bv = daysSince(b.signup_date, b.as_of_date || null) || 0; }
     else { av = a[sortKey]; bv = b[sortKey]; }
     if (typeof av === 'string') av = av.toLowerCase();
     if (typeof bv === 'string') bv = bv.toLowerCase();

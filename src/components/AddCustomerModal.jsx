@@ -3,7 +3,12 @@ import { clsx } from 'clsx';
 import { useData } from '../context/DataContext';
 import { enrichCustomer } from '../lib/scoring';
 
+function todayFormatted() {
+  return new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 const BLANK = {
+  as_of_date: todayFormatted(),
   code: '', customer: '', city: '', state: '', signup_date: '',
   registered_db: '', unregistered_db: '', pend_app: '',
   events: '', last_event_date: '', news: '', last_news_date: '',
@@ -71,6 +76,7 @@ function Section({ title, children }) {
 
 function validate(form) {
   const errs = {};
+  if (!form.as_of_date?.trim()) errs.as_of_date = 'Required';
   if (!form.customer.trim())   errs.customer = 'Required';
   if (!form.code.trim())       errs.code = 'Required';
   if (!form.city.trim())       errs.city = 'Required';
@@ -121,6 +127,26 @@ export default function AddCustomerModal({ onClose, editCustomer }) {
         </div>
 
         <div className="overflow-y-auto px-6 py-5 space-y-6">
+
+          {/* Data As Of — full width, top of form */}
+          <div className="bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 flex flex-col gap-1">
+            <label className="text-xs font-semibold text-indigo-700">
+              Data As Of Date <span className="text-red-500">*</span>
+            </label>
+            <input
+              value={form.as_of_date}
+              onChange={e => set('as_of_date', e.target.value)}
+              placeholder="13 May 2026"
+              className={clsx(
+                'text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white',
+                errors.as_of_date ? 'border-red-400' : 'border-indigo-200'
+              )}
+            />
+            {errors.as_of_date
+              ? <span className="text-[10px] text-red-500">{errors.as_of_date}</span>
+              : <span className="text-[10px] text-indigo-500">The date this data was pulled from the backend. All PA recency scores are calculated relative to this date.</span>
+            }
+          </div>
 
           <Section title="Basic Information">
             <Field label="Code" required>
