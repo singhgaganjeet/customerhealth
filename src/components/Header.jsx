@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import HistoryModal from './HistoryModal';
 
 export default function Header({ onImportClick, onPDFClick, onAddClick }) {
-  const { reportDate } = useData();
+  const { reportDate, history } = useData();
+  const [showHistory, setShowHistory] = useState(false);
   return (
+    <>
     <header className="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center gap-4 shadow-sm sticky top-0 z-40">
       <Link to="/" className="flex items-center gap-3 shrink-0 hover:opacity-80 transition-opacity">
         <img src="/hoopstr_logo.png" alt="Hoopstr" className="h-7 w-auto" />
@@ -17,6 +21,22 @@ export default function Header({ onImportClick, onPDFClick, onAddClick }) {
           Report: <span className="text-slate-600 font-medium">{reportDate}</span>
         </span>
       )}
+
+      <button
+        onClick={() => setShowHistory(true)}
+        title="Change History"
+        className="relative flex items-center gap-1.5 text-xs text-slate-600 bg-white border border-gray-300 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors font-medium"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        History
+        {history.length > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+            {history.length > 99 ? '99' : history.length}
+          </span>
+        )}
+      </button>
 
       {onAddClick && (
         <button
@@ -54,5 +74,8 @@ export default function Header({ onImportClick, onPDFClick, onAddClick }) {
         </button>
       )}
     </header>
+
+    {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
+    </>
   );
 }

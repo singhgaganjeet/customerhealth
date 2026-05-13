@@ -15,7 +15,7 @@ function CustomerRow({ customer, navigate }) {
         <div className="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors truncate">
           {customer.customer}
         </div>
-        <div className="text-xs text-slate-400 mt-0.5">{customer.city} · {customer.plan}</div>
+        <div className="text-xs text-slate-400 mt-0.5">{customer.city} · {customer.state}</div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <span className={clsx('text-xs px-2 py-0.5 rounded font-medium', getPAStatusStyle(customer.pa_status))}>

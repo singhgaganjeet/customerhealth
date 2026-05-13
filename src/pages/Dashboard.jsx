@@ -7,12 +7,14 @@ import CustomerTable from '../components/CustomerTable';
 import FilterBar from '../components/FilterBar';
 import ImportModal from '../components/ImportModal';
 import AddCustomerModal from '../components/AddCustomerModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { generatePDFReport } from '../lib/pdf';
 
 export default function Dashboard() {
-  const { customers, reportDate } = useData();
+  const { customers, reportDate, clearAllCustomers } = useData();
   const [showImport, setShowImport] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({ state: '', city: '', activationStatus: '', paStatus: '' });
 
@@ -47,7 +49,17 @@ export default function Dashboard() {
           <div className="xl:col-span-3 bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-700">Customer Directory</h2>
-              <span className="text-xs text-slate-400">{filtered.length} of {customers.length} shown</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-400">{filtered.length} of {customers.length} shown</span>
+                {customers.length > 0 && (
+                  <button
+                    onClick={() => setShowClearConfirm(true)}
+                    className="text-xs text-red-400 hover:text-red-600 font-medium transition-colors"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
             </div>
             <input
               type="text"
@@ -65,6 +77,16 @@ export default function Dashboard() {
 
       {showImport && <ImportModal onClose={() => setShowImport(false)} />}
       {showAdd && <AddCustomerModal onClose={() => setShowAdd(false)} />}
+      {showClearConfirm && (
+        <ConfirmDialog
+          title="Clear All Data"
+          message={`This will permanently remove all ${customers.length} customers. This cannot be undone.`}
+          confirmLabel="Clear All"
+          danger
+          onConfirm={() => { clearAllCustomers(); setShowClearConfirm(false); }}
+          onCancel={() => setShowClearConfirm(false)}
+        />
+      )}
     </div>
   );
 }

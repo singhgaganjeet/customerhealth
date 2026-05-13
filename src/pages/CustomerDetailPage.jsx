@@ -7,6 +7,7 @@ import ActivationBadge from '../components/ActivationBadge';
 import PillarCard from '../components/PillarCard';
 import ProductAdoptionDeepDive from '../components/ProductAdoptionDeepDive';
 import AddCustomerModal from '../components/AddCustomerModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { PILLARS } from '../lib/pillars';
 import { clsx } from 'clsx';
 
@@ -21,10 +22,11 @@ function InfoChip({ label, value, highlight }) {
 
 export default function CustomerDetailPage() {
   const { siteId } = useParams();
-  const { customers } = useData();
+  const { customers, deleteCustomer } = useData();
   const navigate = useNavigate();
   const customer = customers.find(c => String(c.site_id) === String(siteId));
   const [showEdit, setShowEdit] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!customer) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -50,15 +52,26 @@ export default function CustomerDetailPage() {
             </svg>
             Back to Dashboard
           </button>
-          <button
-            onClick={() => setShowEdit(true)}
-            className="flex items-center gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Edit Customer
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowEdit(true)}
+              className="flex items-center gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-1.5 text-xs bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete
+            </button>
+          </div>
         </div>
 
         {/* Customer hero */}
@@ -108,6 +121,17 @@ export default function CustomerDetailPage() {
 
       {showEdit && (
         <AddCustomerModal editCustomer={customer} onClose={() => setShowEdit(false)} />
+      )}
+
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title="Delete Customer"
+          message={`Remove "${customer.customer}" permanently? This cannot be undone.`}
+          confirmLabel="Delete"
+          danger
+          onConfirm={() => { deleteCustomer(customer.site_id); navigate('/'); }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
       )}
     </div>
   );
