@@ -2,13 +2,14 @@ import { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import Header from '../components/Header';
 import KPIStrip from '../components/KPIStrip';
+import StatsStrip from '../components/StatsStrip';
 import PillarBreakdownChart from '../components/PillarBreakdownChart';
 import CustomerTable from '../components/CustomerTable';
 import FilterBar from '../components/FilterBar';
 import ImportModal from '../components/ImportModal';
 import AddCustomerModal from '../components/AddCustomerModal';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { generatePDFReport } from '../lib/pdf';
+import { exportToCSV } from '../lib/csvExport';
 
 export default function Dashboard() {
   const { customers, reportDate, clearAllCustomers } = useData();
@@ -35,11 +36,12 @@ export default function Dashboard() {
       <Header
         onAddClick={() => setShowAdd(true)}
         onImportClick={() => setShowImport(true)}
-        onPDFClick={() => generatePDFReport(customers, reportDate)}
+        onExportClick={() => exportToCSV(customers, reportDate)}
       />
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-5">
         <KPIStrip customers={customers} />
+        <StatsStrip customers={customers} />
 
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-5">
           <div className="xl:col-span-2">
