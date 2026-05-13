@@ -13,10 +13,10 @@ const MODULES = [
   { label: 'Ascend Elite',    fn: c => c.ascend_elite === 'Yes' },
   { label: 'Group Insurance', fn: c => c.group_insurance === 'Yes' },
   { label: 'Hoopstr Live',    fn: c => c.hoopstr_live === 'Yes' },
-  { label: 'Hoopstr Affinity',fn: c => c.hoopstr_affinity === 'Yes' },
+  { label: 'Affinity',        fn: c => c.hoopstr_affinity === 'Yes' },
   { label: 'Vanguard',        fn: c => c.vanguard === 'Yes' },
   { label: 'Magic AI',        fn: c => c.magic_ai === 'Yes' },
-  { label: 'Campus Visited',  fn: c => c.campus_visited === 'Yes' },
+  { label: 'Campus Visit',    fn: c => c.campus_visited === 'Yes' },
   { label: 'Demo Done',       fn: c => !!(c.last_demo_date && String(c.last_demo_date).trim()) },
 ];
 
@@ -57,7 +57,7 @@ export default function StatsStrip({ customers }) {
       {/* PA Status */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Product Adoption Status</p>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
           {PA_TIERS.map(t => (
             <StatCard
               key={t.key}
@@ -76,7 +76,7 @@ export default function StatsStrip({ customers }) {
       {/* Module adoption */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Module Adoption</p>
-        <div className="grid grid-cols-9 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
           {MODULES.map(m => (
             <ModuleCard
               key={m.label}

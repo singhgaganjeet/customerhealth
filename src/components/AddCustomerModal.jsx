@@ -69,7 +69,7 @@ function Section({ title, children }) {
         <span>{title}</span>
         <div className="flex-1 h-px bg-gray-100" />
       </div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3">{children}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">{children}</div>
     </div>
   );
 }

@@ -8,13 +8,13 @@ import { useData } from '../context/DataContext';
 import { getPAStatusStyle, daysSince } from '../lib/scoring';
 
 const COLS = [
-  { key: 'customer',         label: 'Institution'        },
-  { key: 'city',             label: 'City'               },
-  { key: 'tenure',           label: 'Tenure',   sortKey: '_tenure' },
-  { key: 'pa_status',        label: 'PA Status'          },
-  { key: 'activationScore',  label: 'Score'              },
-  { key: 'activationStatus', label: 'Activation Status'  },
-  { key: 'pillarsActivated', label: 'Pillars'            },
+  { key: 'customer',         label: 'Institution',                        },
+  { key: 'city',             label: 'City',         cls: 'hidden sm:table-cell' },
+  { key: 'tenure',           label: 'Tenure',       cls: 'hidden sm:table-cell', sortKey: '_tenure' },
+  { key: 'pa_status',        label: 'PA Status',                          },
+  { key: 'activationScore',  label: 'Score',                              },
+  { key: 'activationStatus', label: 'Status',       cls: 'hidden md:table-cell' },
+  { key: 'pillarsActivated', label: 'Pillars',      cls: 'hidden md:table-cell' },
 ];
 
 const PER_PAGE = 15;
@@ -23,7 +23,7 @@ function ScoreBar({ score }) {
   const color = score >= 80 ? 'bg-[#7ed957]' : score >= 60 ? 'bg-green-500' : score >= 40 ? 'bg-yellow-500' : score >= 20 ? 'bg-red-500' : 'bg-gray-400';
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 bg-gray-100 rounded-full h-1.5 shrink-0">
+      <div className="w-12 sm:w-16 bg-gray-100 rounded-full h-1.5 shrink-0">
         <div className={clsx('h-1.5 rounded-full transition-all', color)} style={{ width: `${score}%` }} />
       </div>
       <span className="text-sm font-semibold text-slate-700 tabular-nums">{score}</span>
@@ -90,12 +90,15 @@ export default function CustomerTable({ customers }) {
                   <th
                     key={col.key}
                     onClick={() => handleSort(col.sortKey || col.key)}
-                    className="text-left text-xs font-semibold text-slate-500 px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-700 select-none"
+                    className={clsx(
+                      'text-left text-xs font-semibold text-slate-500 px-3 sm:px-4 py-3 whitespace-nowrap cursor-pointer hover:text-slate-700 select-none',
+                      col.cls
+                    )}
                   >
                     {col.label}<SortArrow col={col} />
                   </th>
                 ))}
-                <th className="px-4 py-3 w-16" />
+                <th className="px-3 sm:px-4 py-3 w-14" />
               </tr>
             </thead>
             <tbody>
@@ -111,29 +114,29 @@ export default function CustomerTable({ customers }) {
                   onClick={() => navigate(`/customer/${c.site_id}`)}
                   className="border-b border-gray-100 hover:bg-indigo-50 cursor-pointer transition-colors group"
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     <div className="font-medium text-slate-800 group-hover:text-indigo-700 transition-colors">{c.customer}</div>
                     <div className="text-xs text-slate-400 mt-0.5">{c.code} · {c.state}</div>
                   </td>
-                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{c.city || '—'}</td>
-                  <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{getTenure(c) || '—'}</td>
-                  <td className="px-4 py-3">
-                    <span className={clsx('text-xs px-2 py-0.5 rounded font-medium', getPAStatusStyle(c.pa_status))}>
+                  <td className="hidden sm:table-cell px-4 py-3 text-slate-600 whitespace-nowrap">{c.city || '—'}</td>
+                  <td className="hidden sm:table-cell px-4 py-3 text-slate-500 text-xs whitespace-nowrap">{getTenure(c) || '—'}</td>
+                  <td className="px-3 sm:px-4 py-3">
+                    <span className={clsx('text-xs px-2 py-0.5 rounded font-medium whitespace-nowrap', getPAStatusStyle(c.pa_status))}>
                       {c.pa_status || '—'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 min-w-[130px]">
+                  <td className="px-3 sm:px-4 py-3">
                     <ScoreBar score={c.activationScore} />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="hidden md:table-cell px-4 py-3">
                     <ActivationBadge status={c.activationStatus} />
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="hidden md:table-cell px-4 py-3 text-center">
                     <span className="text-sm font-bold text-slate-700 tabular-nums">
                       {c.pillarsActivated}<span className="text-slate-400 font-normal text-xs">/10</span>
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 sm:px-4 py-3">
                     <div
                       className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={e => e.stopPropagation()}
@@ -165,9 +168,9 @@ export default function CustomerTable({ customers }) {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-slate-50">
+          <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-t border-gray-100 bg-slate-50">
             <span className="text-xs text-slate-400">{sorted.length} customers · Page {page} of {totalPages}</span>
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                 <button
                   key={p}

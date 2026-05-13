@@ -86,13 +86,13 @@ export default function PillarExplorerPage() {
               <h1 className="text-xl font-bold text-slate-800">{pillar.label}</h1>
               <p className="text-sm text-slate-500 mt-1 max-w-lg">{pillar.description}</p>
             </div>
-            <div className="flex items-center gap-5">
+            <div className="flex items-center flex-wrap gap-4">
               <div className="text-center">
-                <div className={clsx('text-4xl font-bold tabular-nums', rateColor)}>{rate}%</div>
+                <div className={clsx('text-3xl sm:text-4xl font-bold tabular-nums', rateColor)}>{rate}%</div>
                 <div className="text-xs text-slate-400 mt-0.5">Activation Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-slate-700 tabular-nums">{activated.length}</div>
+                <div className="text-3xl sm:text-4xl font-bold text-slate-700 tabular-nums">{activated.length}</div>
                 <div className="text-xs text-slate-400 mt-0.5">Activated</div>
               </div>
               <button

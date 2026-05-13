@@ -39,7 +39,7 @@ export default function Dashboard() {
         onExportClick={() => exportToCSV(customers, reportDate)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-5">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-5">
         <KPIStrip customers={customers} />
         <StatsStrip customers={customers} />
 

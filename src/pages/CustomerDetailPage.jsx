@@ -75,11 +75,11 @@ export default function CustomerDetailPage() {
         </div>
 
         {/* Customer hero */}
-        <div className="bg-slate-900 rounded-2xl p-6 text-white">
+        <div className="bg-slate-900 rounded-2xl p-4 sm:p-6 text-white">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold leading-tight">{customer.customer}</h1>
-              <div className="flex flex-wrap gap-5 mt-3">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold leading-tight">{customer.customer}</h1>
+              <div className="flex flex-wrap gap-3 sm:gap-5 mt-3">
                 <InfoChip label="Code" value={customer.code} />
                 <InfoChip label="City" value={`${customer.city}, ${customer.state}`} />
                 <InfoChip label="PA Status" value={customer.pa_status || '—'} />
@@ -102,9 +102,9 @@ export default function CustomerDetailPage() {
             </p>
           </div>
 
-          <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-5">
+          <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
             <h2 className="text-sm font-semibold text-slate-700 mb-4">Activation Pillars</h2>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {PILLARS.map(p => (
                 <PillarCard
                   key={p.key}
